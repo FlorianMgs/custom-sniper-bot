@@ -19,6 +19,7 @@ class TXN:
         self.address, self.private_key = self.setup_address()
         self.token_address = Web3.toChecksumAddress(token_address)
         self.token_contract = self.setup_token()
+        self.targeted_function = self.setupTargetedFunction()
         self.swapper_address = self.set_swap1()
         self.contract_swap = self.set_swap2()
         self.MaxGasInBNB, self.gas_price = self.setupGas()
