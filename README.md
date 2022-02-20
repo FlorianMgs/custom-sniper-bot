@@ -6,6 +6,7 @@ sniper.py -t 0x34faa80fec0233e045ed4737cc152a71e490e2e3 -a 0.2 -tp 15
 Il n'y a que le TP qui est disponible pour le moment, je n'ai toujours pas checké SL/TSL, enjoy ;)
 
 ## Mesures antibots
+!! Pour que ça marche, il faut utiliser un node Websockets !!
 J'ai add une feature qui permet de detecter dans la mempool si une certaine fonction a été trigger sur le token visé.
 Par exemple, si il y a une fonctin disableAntibot sur le smart contract visé, tu la fout dans settings.json:
 ```
