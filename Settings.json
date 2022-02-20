@@ -1,0 +1,12 @@
+{
+    "metamask_address": "",
+    "metamask_private_key": "",
+    "RPC": "",
+    "GWEI_GAS": 6,
+    "MaxTXFeeBNB": 0.01,
+    "Slippage": 25,
+    "MaxSellTax": 15,
+    "MaxBuyTax": 15,
+    "RouteurAddress": "0x10ED43C718714eb63d5aA57B78B54704E256024E",
+    "function": "setBuyFee(uint16,uint16,uint16,uint16)"
+}
