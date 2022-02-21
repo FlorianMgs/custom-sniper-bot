@@ -111,10 +111,10 @@ parser.add_argument(
     help="this argument disabled the SwapEnabled Check!",
 )
 parser.add_argument(
-    '-wf',
-    '--awaitFunctionCall',
+    "-wf",
+    "--awaitFunctionCall",
     action="store_true",
-    help='Await for a specific function to be called before buy, allowing antibot measures bypass'
+    help="Await for a specific function to be called before buy, allowing antibot measures bypass",
 )
 
 args = parser.parse_args()
@@ -238,10 +238,10 @@ class SniperBot:
         for i in range(self.tx):
             # spinner.start()
             self.TXN = TXN(self.token, self.amountForSnipe)
-            tx_check = self.TXN.check_token()
+            # tx_check = self.TXN.check_token()
             tx = self.TXN.buy_token()
             # spinner.stop()
-            print(tx_check[1])
+            # print(tx_check[1])
             print(tx[1])
             if tx[0] != True:
                 sys.exit()
@@ -356,10 +356,14 @@ class SniperBot:
                     + "BNB"
                 )
             if self.takeProfitOutput != 0:
+                priceOver = self.takeProfitOutput / TokenBalance
                 msg = (
                     msg
                     + "| Take Profit Over: "
                     + str("{0:.7f}".format(self.takeProfitOutput))
+                    + " BNB"
+                    + "| Price Profit Over: "
+                    + str("{0:.10f}".format(priceOver))
                     + " BNB"
                 )
             if self.tsl != 0:
@@ -393,31 +397,36 @@ class SniperBot:
 
         if args.nobuy != True:
             self.awaitLiquidity()
-            # if args.DisabledSwapEnabledCheck != True:
-            #     self.awaitEnabledBuy()
+            if args.DisabledSwapEnabledCheck != True:
+                self.awaitEnabledBuy()
 
-        # honeyTax = self.TXN.checkToken()
-        # if self.hp == True:
-        #     print(style().YELLOW + "Checking Token is Honeypot..." + style().RESET)
-        #     if honeyTax[2] == True:
-        #         print(style.RED + "Token is Honeypot, exiting")
-        #         sys.exit()
-        #     elif honeyTax[2] == False:
-        #         print(style().GREEN + "[DONE] Token is NOT a Honeypot!" + style().RESET)
-        # if honeyTax[1] > self.settings["MaxSellTax"]:
-        #     print(style().RED + "Token SellTax exceeds Settings.json, exiting!")
-        #     sys.exit()
-        # if honeyTax[0] > self.settings["MaxBuyTax"]:
-        #     print(style().RED + "Token BuyTax exceeds Settings.json, exiting!")
-        #     sys.exit()
-        # if self.wb != 0:
-        #     self.awaitBlocks()
+        honeyTax = self.TXN.checkToken()
+        if self.hp == True:
+            print(style().YELLOW + "Checking Token is Honeypot..." + style().RESET)
+            if honeyTax[2] == True:
+                print(style.RED + "Token is Honeypot, exiting")
+                sys.exit()
+            elif honeyTax[2] == False:
+                print(style().GREEN + "[DONE] Token is NOT a Honeypot!" + style().RESET)
+        if honeyTax[1] > self.settings["MaxSellTax"]:
+            print(style().RED + "Token SellTax exceeds Settings.json, exiting!")
+            sys.exit()
+        if honeyTax[0] > self.settings["MaxBuyTax"]:
+            print(style().RED + "Token BuyTax exceeds Settings.json, exiting!")
+            sys.exit()
+
+        if self.wb != 0:
+            self.awaitBlocks()
 
         if args.nobuy != True:
             if self.wf:
                 function_called = self.TXN.checkFunctionCall()
                 if function_called:
-                    print(style().GREEN + "[DONE] Function called, now we buy!" + style().RESET)
+                    print(
+                        style().GREEN
+                        + "[DONE] Function called, now we buy!"
+                        + style().RESET
+                    )
                     self.awaitBuy()
             else:
                 self.awaitBuy()

@@ -22,6 +22,7 @@ class TXN:
         self.targeted_function = self.setupTargetedFunction()
         self.swapper_address = self.set_swap1()
         self.contract_swap = self.set_swap2()
+        self.contract_bsc = self.set_cheker()
         self.MaxGasInBNB, self.gas_price = self.setupGas()
         self.slippage = self.setupSlippage()
         self.quantity = quantity
@@ -69,15 +70,23 @@ class TXN:
     def getBlockHigh(self):
         return self.w3.eth.block_number
 
+    def set_cheker(self):
+        with open("./ABI/BSC_Swapper.json") as f:
+            info_json = json.load(f)
+        abi_bsc = info_json
+        bscContract = "0xAfbd3c3ED030d45484E10334aB9b15C3414DD142"
+        contract_bsc = self.w3.eth.contract(address=bscContract, abi=abi_bsc)
+        return contract_bsc
+
     def set_swap1(self):  # DIFFERENCE ICI ***
         swapper_address = Web3.toChecksumAddress(
-            "0xa0C267F8753dF1E1b8b279D396BF3A61FeD62328"
+            "0xE021bb3995411f27A1B4a0C8743107Bc1CC40B4E"
         )
         return swapper_address
 
     def set_swap2(self):  # DIFFERENCE ICI ***
         swapper_addressx = Web3.toChecksumAddress(
-            "0xa0C267F8753dF1E1b8b279D396BF3A61FeD62328"
+            "0xE021bb3995411f27A1B4a0C8743107Bc1CC40B4E"
         )
         with open("./ABI/SWAPRICE.json") as f2:
             contract_abiX = json.load(f2)
@@ -99,15 +108,25 @@ class TXN:
         )
 
     # DEV: ici, trouver un moyen de check si c'est un honey ***
-    def checkToken(
-        self,
-    ):  # ATTENTION, deuxième fonction "check_token" active plus bas !
-        pass  # getTokenInfos
+    def checkToken(self):
+        tokenInfos = self.contract_bsc.functions.getTokenInfos(
+            self.token_address
+        ).call()
+        buy_tax = round((tokenInfos[0] - tokenInfos[1]) / tokenInfos[0] * 100)
+        sell_tax = round((tokenInfos[2] - tokenInfos[3]) / tokenInfos[2] * 100)
+        if tokenInfos[5] and tokenInfos[6] == True:
+            honeypot = False
+        else:
+            honeypot = True
+        return buy_tax, sell_tax, honeypot
 
     # DEV : Check si le token peut être acheté ou pas ***
     def checkifTokenBuyDisabled(self):
-        pass  # getTokenInfos
-        # Il faut réussir à choper l'info suivante : ??
+        disabled = self.contract_bsc.functions.getTokenInfos(self.token_address).call()[
+            4
+        ]  # True if Buy is enabled, False if Disabled.
+        # todo: find a solution for bugged tokens that never can be buy.
+        return disabled
 
     def estimateGas(self, txn):
         gas = self.w3.eth.estimateGas(
@@ -192,9 +211,7 @@ class TXN:
                 "from": self.address,
                 "gas": 480000,
                 "gasPrice": self.gas_price,
-                "nonce": (
-                    self.nonce + 1
-                ),  # +1 sur le nonce du checkHoney, car pas le temps de call le nonce
+                "nonce": self.nonce,
                 "value": int(self.quantity),
             }
         )
@@ -283,10 +300,10 @@ class TXN:
         """
         with open("./Settings.json") as f:
             keys = json.load(f)
-        if ' ' in keys['function']:
-            return self.format_function(keys['function'])
+        if " " in keys["function"]:
+            return self.format_function(keys["function"])
         else:
-            return keys['function']
+            return keys["function"]
 
     @staticmethod
     def format_function(function: str) -> str:
@@ -295,8 +312,8 @@ class TXN:
         :param function: string specified in settings.json
         :return: formatted function. Delete parameters name, spaces, and keep parameters types.
         """
-        splitted = function.split(' ')[:-1]
-        return ','.join([e for e in splitted if ',' not in e]) + ')'
+        splitted = function.split(" ")[:-1]
+        return ",".join([e for e in splitted if "," not in e]) + ")"
 
     def check_for_function_in_event(self, event) -> bool:
         """
@@ -304,10 +321,13 @@ class TXN:
         :param event: Web3 event
         :return: bool
         """
-        tx = Web3.toJSON(event).replace('"', '')
+        tx = Web3.toJSON(event).replace('"', "")
         tx_details = self.w3.eth.getTransaction(tx)
-        if tx_details['to'] == self.token_address:
-            if str(self.w3.keccak(text=self.targeted_function)[0:4].hex()) in tx_details['input']:
+        if tx_details["to"] == self.token_address:
+            if (
+                str(self.w3.keccak(text=self.targeted_function)[0:4].hex())
+                in tx_details["input"]
+            ):
                 return True
 
     async def wait_for_function(self, event_filter, poll_interval: float) -> bool:
@@ -333,12 +353,12 @@ class TXN:
         we return True.
         :return: bool if targeted function has been caught.
         """
-        tx_filter = self.w3.eth.filter('pending')
+        tx_filter = self.w3.eth.filter("pending")
         loop = asyncio.get_event_loop()
         try:
             loop.run_until_complete(
-                asyncio.gather(
-                    self.wait_for_function(tx_filter, 0.07)))
+                asyncio.gather(self.wait_for_function(tx_filter, 0.07))
+            )
         finally:
             # Function called by token owner, return True
             return True

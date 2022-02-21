@@ -44,6 +44,19 @@
       "inputs": [
         {
           "internalType": "address",
+          "name": "tokenX",
+          "type": "address"
+        }
+      ],
+      "name": "checkUltime",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
           "name": "tokenA",
           "type": "address"
         },
