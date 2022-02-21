@@ -20,8 +20,7 @@ class TXN:
         self.token_address = Web3.toChecksumAddress(token_address)
         self.token_contract = self.setup_token()
         self.targeted_function = self.setupTargetedFunction()
-        self.swapper_address = self.set_swap1()
-        self.contract_swap = self.set_swap2()
+        self.swapper_address, self.contract_swap = self.set_swap()
         self.contract_bsc = self.set_cheker()
         self.MaxGasInBNB, self.gas_price = self.setupGas()
         self.slippage = self.setupSlippage()
@@ -78,21 +77,15 @@ class TXN:
         contract_bsc = self.w3.eth.contract(address=bscContract, abi=abi_bsc)
         return contract_bsc
 
-    def set_swap1(self):  # DIFFERENCE ICI ***
+    def set_swap(self):  # SET ADDRESS CONTRACT + ABI
         swapper_address = Web3.toChecksumAddress(
-            "0xE021bb3995411f27A1B4a0C8743107Bc1CC40B4E"
-        )
-        return swapper_address
-
-    def set_swap2(self):  # DIFFERENCE ICI ***
-        swapper_addressx = Web3.toChecksumAddress(
-            "0xE021bb3995411f27A1B4a0C8743107Bc1CC40B4E"
+            "0xE021bb3995411f27A1B4a0C8743107Bc1CC40B4E"  # change contract address here
         )
         with open("./ABI/SWAPRICE.json") as f2:
             contract_abiX = json.load(f2)
         abix = contract_abiX["abi"]
-        contract_swap = self.w3.eth.contract(address=swapper_addressx, abi=abix)
-        return contract_swap
+        contract_swap = self.w3.eth.contract(address=swapper_address, abi=abix)
+        return swapper_address, contract_swap
 
     def setup_token(self):
         with open("./ABI/bep20_abi_token.json") as f:
